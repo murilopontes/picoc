@@ -1,0 +1,4 @@
+*.o
+picoc
+
+tests/fred.txt
