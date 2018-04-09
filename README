@@ -21,9 +21,11 @@ processors and is easy to port to new targets.
 Compiling picoc
 ---------------
 
-picoc can be compiled for a UNIX/Linux/POSIX host by typing "make".
+picoc can be compiled for a UNIX/Linux/POSIX host by typing:
+cmake .
+make
 
-The test suite can be run by typing "make test".
+The test suite run during the build.
 
 
 Porting picoc

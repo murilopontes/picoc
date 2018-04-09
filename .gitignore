@@ -2,3 +2,10 @@
 picoc
 
 tests/fred.txt
+
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+MakeFile
+picoc_unix
+picoc_freertos

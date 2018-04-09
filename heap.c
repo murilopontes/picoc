@@ -30,17 +30,9 @@ void HeapInit(Picoc *pc, int StackOrHeapSize)
     pc->StackFrame = NULL;                     /* the current stack frame */
     pc->HeapStackTop = NULL;                          /* the top of the stack */
 #else
-# ifdef SURVEYOR_HOST
-    pc->HeapMemory = (unsigned char *)C_HEAPSTART;      /* all memory - stack and heap */
-    pc->HeapBottom = (void *)C_HEAPSTART + HEAP_SIZE;  /* the bottom of the (downward-growing) heap */
-    pc->StackFrame = (void *)C_HEAPSTART;              /* the current stack frame */
-    pc->HeapStackTop = (void *)C_HEAPSTART;                   /* the top of the stack */
-    pc->HeapMemStart = (void *)C_HEAPSTART;
-# else
-    pc->HeapBottom = &HeapMemory[HEAP_SIZE];   /* the bottom of the (downward-growing) heap */
-    pc->StackFrame = &HeapMemory[0];           /* the current stack frame */
-    pc->HeapStackTop = &HeapMemory[0];                /* the top of the stack */
-# endif
+    pc->HeapBottom = &pc->HeapMemory[HEAP_SIZE];   /* the bottom of the (downward-growing) heap */
+    pc->StackFrame = &pc->HeapMemory[0];           /* the current stack frame */
+    pc->HeapStackTop = &pc->HeapMemory[0];                /* the top of the stack */
 #endif
 
     while (((unsigned long)&pc->HeapMemory[AlignOffset] & (sizeof(ALIGN_TYPE)-1)) != 0)
@@ -203,7 +195,7 @@ void *HeapAllocMem(Picoc *pc, int Size)
     { 
         /* couldn't allocate from a freelist - try to increase the size of the heap area */
 #ifdef DEBUG_HEAP
-        printf("allocating %d(%d) at bottom of heap (0x%lx-0x%lx)", Size, AllocSize, (long)((char *)pc->HeapBottom - AllocSize), (long)HeapBottom);
+        printf("allocating %d(%d) at bottom of heap (0x%lx-0x%lx)", Size, AllocSize, (long)((char *)pc->HeapBottom - AllocSize), (long)pc->HeapBottom);
 #endif
         if ((char *)pc->HeapBottom - AllocSize < (char *)pc->HeapStackTop)
             return NULL;
@@ -256,7 +248,7 @@ void HeapFreeMem(Picoc *pc, void *Mem)
 #ifdef DEBUG_HEAP
         printf("freeing %d to bucket\n", MemNode->Size);
 #endif
-        assert(pc->FreeListBucket[Bucket] == NULL || ((unsigned long)pc->FreeListBucket[Bucket] >= (unsigned long)&(pc->HeapMemory)[0] && (unsigned char *)FreeListBucket[Bucket] - &HeapMemory[0] < HEAP_SIZE));
+        assert(pc->FreeListBucket[Bucket] == NULL || ((unsigned long)pc->FreeListBucket[Bucket] >= (unsigned long)&(pc->HeapMemory)[0] && (unsigned char *)pc->FreeListBucket[Bucket] - &pc->HeapMemory[0] < HEAP_SIZE));
         *(struct AllocNode **)MemNode = pc->FreeListBucket[Bucket];
         pc->FreeListBucket[Bucket] = (struct AllocNode *)MemNode;
     }
@@ -268,7 +260,7 @@ void HeapFreeMem(Picoc *pc, void *Mem)
 #endif
         assert(pc->FreeListBig == NULL || ((unsigned long)pc->FreeListBig >= (unsigned long)&(pc->HeapMemory)[0] && (unsigned char *)pc->FreeListBig - &(pc->HeapMemory)[0] < HEAP_SIZE));
         MemNode->NextFree = pc->FreeListBig;
-        FreeListBig = MemNode;
+        pc->FreeListBig = MemNode;
 #ifdef DEBUG_HEAP
         ShowBigList(pc);
 #endif
